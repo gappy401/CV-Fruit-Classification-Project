@@ -53,4 +53,4 @@ if uploaded_file:
         _, predicted = torch.max(output, 1)
         
         predicted_label = class_names[predicted.item()]
-        st.success(f"Predicted Fruit: {predicted_label}")
+    st.success(f"Predicted Fruit: {predicted_label}")
