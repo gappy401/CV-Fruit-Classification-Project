@@ -4,13 +4,24 @@ from PIL import Image
 import torch
 import torchvision.transforms as transforms
 import io
-
+import os
 from torchvision import datasets
 
-# Load training dataset just to get class names
-train_dataset = datasets.ImageFolder(root="Training")
+# 🔧 Resolve path to Training folder
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+TRAIN_DIR = os.path.join(BASE_DIR, "Training")
+
+# 📁 Load training dataset just to get class names
+transform = transforms.Compose([
+    transforms.Resize((100, 100)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.5], std=[0.5])
+])
+
+train_dataset = datasets.ImageFolder(root=TRAIN_DIR, transform=transform)
 class_names = train_dataset.classes  # List of folder names = fruit labels
-# Load model
+
+# 🧠 Load model
 class FruitClassifier(torch.nn.Module):
     def __init__(self, num_classes):
         super(FruitClassifier, self).__init__()
@@ -25,19 +36,12 @@ class FruitClassifier(torch.nn.Module):
     def forward(self, x):
         return self.model(x)
 
-# Load saved weights
-model = FruitClassifier(num_classes=216)
-model.load_state_dict(torch.load("fruit_model.pth", map_location=torch.device("cpu")))
+# 📦 Load saved weights
+model = FruitClassifier(num_classes=len(class_names))
+model.load_state_dict(torch.load(os.path.join(BASE_DIR, "fruit_model.pth"), map_location=torch.device("cpu")))
 model.eval()
 
-# Define transform
-transform = transforms.Compose([
-    transforms.Resize((100, 100)),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.5], std=[0.5])
-])
-
-# Streamlit UI
+# 🎨 Streamlit UI
 st.title("🍎 Fruit Classifier")
 st.write("Upload a fruit image and get its predicted class.")
 
@@ -51,6 +55,6 @@ if uploaded_file:
     with torch.no_grad():
         output = model(input_tensor)
         _, predicted = torch.max(output, 1)
-        
         predicted_label = class_names[predicted.item()]
+
     st.success(f"Predicted Fruit: {predicted_label}")
