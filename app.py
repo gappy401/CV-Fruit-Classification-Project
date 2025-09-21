@@ -8,7 +8,7 @@ import io
 from torchvision import datasets
 
 # Load training dataset just to get class names
-train_dataset = datasets.ImageFolder(root="/Training")
+train_dataset = datasets.ImageFolder(root="Training")
 class_names = train_dataset.classes  # List of folder names = fruit labels
 # Load model
 class FruitClassifier(torch.nn.Module):
