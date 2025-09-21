@@ -5,6 +5,11 @@ import torch
 import torchvision.transforms as transforms
 import io
 
+from torchvision import datasets
+
+# Load training dataset just to get class names
+train_dataset = datasets.ImageFolder(root="/Training")
+class_names = train_dataset.classes  # List of folder names = fruit labels
 # Load model
 class FruitClassifier(torch.nn.Module):
     def __init__(self, num_classes):
@@ -46,5 +51,6 @@ if uploaded_file:
     with torch.no_grad():
         output = model(input_tensor)
         _, predicted = torch.max(output, 1)
-
-    st.success(f"Predicted Class Index: {predicted.item()}")
+        
+        predicted_label = class_names[predicted.item()]
+        st.success(f"Predicted Fruit: {predicted_label}")
