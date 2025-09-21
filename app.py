@@ -72,14 +72,17 @@ uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png
 
 if uploaded_file:
     image = Image.open(uploaded_file).convert("RGB")
-    st.image(image, caption="Uploaded Image", use_column_width=True)
+    st.image(image, caption="📷 Original Uploaded Image", use_column_width=True)
 
+    # 🔍 Preprocess image for detection
     processed_image = preprocess_for_detection(image)
-    input_tensor = transform(processed_image).unsqueeze(0)
+    st.image(processed_image, caption="🧠 Preprocessed Image Used for Prediction", use_column_width=True)
 
+    # 🔢 Transform and predict
+    input_tensor = transform(processed_image).unsqueeze(0)
     with torch.no_grad():
         output = model(input_tensor)
         _, predicted = torch.max(output, 1)
         predicted_label = class_names[predicted.item()]
 
-    st.success(f"Predicted Fruit: {predicted_label}")
+    st.success(f"🍓 Predicted Fruit: **{predicted_label}**")
