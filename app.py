@@ -6,7 +6,6 @@ import torch.nn as nn
 import torchvision.transforms as transforms
 import io
 import os
-import cv2
 import numpy as np
 from torchvision import datasets
 
@@ -45,24 +44,30 @@ model = FruitClassifier(num_classes=len(class_names))
 model.load_state_dict(torch.load(os.path.join(BASE_DIR, "fruit_model.pth"), map_location=torch.device("cpu")))
 model.eval()
 
-# 🔍 Preprocessing function for object detection
+from PIL import ImageOps
+import numpy as np
+
 def preprocess_for_detection(pil_image):
-    image = np.array(pil_image)
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    _, thresh = cv2.threshold(gray, 240, 255, cv2.THRESH_BINARY_INV)
-    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Convert to grayscale
+    gray = ImageOps.grayscale(pil_image)
 
-    if contours:
-        c = max(contours, key=cv2.contourArea)
-        x, y, w, h = cv2.boundingRect(c)
-        cropped = image[y:y+h, x:x+w]
-    else:
-        cropped = image
+    # Convert to NumPy array
+    arr = np.array(gray)
 
-    cropped = cv2.cvtColor(cropped, cv2.COLOR_BGR2RGB)
-    cropped_pil = Image.fromarray(cropped).resize((100, 100))
-    return cropped_pil
+    # Threshold to isolate fruit (works well on white backgrounds)
+    mask = arr < 240  # anything darker than near-white
+
+    # Find bounding box of non-white pixels
+    coords = np.argwhere(mask)
+    if coords.size == 0:
+        return pil_image.resize((100, 100))  # fallback
+
+    y0, x0 = coords.min(axis=0)
+    y1, x1 = coords.max(axis=0) + 1  # add 1 to include edge
+
+    # Crop and resize
+    cropped = pil_image.crop((x0, y0, x1, y1)).resize((100, 100))
+    return cropped
 
 # 🎨 Streamlit UI
 st.title("🍎 Fruit Classifier")
