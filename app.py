@@ -6,7 +6,6 @@ import torch.nn as nn
 import torchvision.transforms as transforms
 import io
 import os
-import numpy as np
 from torchvision import datasets
 
 # 🔧 Resolve path to Training folder
